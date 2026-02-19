@@ -15,7 +15,9 @@
  */
 package algorithms.mlc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import mulan.classifier.InvalidDataException;
 import mulan.classifier.MultiLabelOutput;
@@ -78,6 +80,8 @@ public class EnsembleOfClassifierChains extends TransformationBasedMultiLabelLea
      *
      * @return the size of each bag sample, as a percentage of the training size
      */
+    protected List<int[]> chains = new ArrayList<>(); 
+    
     public int getBagSizePercent() {
         return BagSizePercent;
     }
@@ -134,8 +138,46 @@ public class EnsembleOfClassifierChains extends TransformationBasedMultiLabelLea
         this.samplingPercentage = samplingPercentage;
         rand = new Random(seed);
     }
+    
+    // added to pass chains to m cc models
+    public EnsembleOfClassifierChains(Classifier classifier, int aNumOfModels,
+            boolean doUseConfidences, boolean doUseSamplingWithReplacement,
+            int bagSizePercent, double samplingPercentage, int seed, String parChains) {
+        super(classifier);
+        numOfModels = aNumOfModels;
+        useConfidences = doUseConfidences;
+        useSamplingWithReplacement = doUseSamplingWithReplacement;
+        ensemble = new ClassifierChain[aNumOfModels];
+        this.BagSizePercent = bagSizePercent;
+        this.samplingPercentage = samplingPercentage;
+        rand = new Random(seed);
+        if (parChains != null) {
+        	spliChains(parChains);
+        }
+    }
 
-    /**
+
+    private void spliChains(String parChains) {
+    	System.out.println("parChains "  + parChains);
+		String[] c1 = parChains.split("#");
+		if (c1.length != this.numOfModels) {
+			System.out.println("Invalid number of chains");
+			System.exit(0);
+		} else {
+			for (String s: c1) {
+				String[] c11 = s.split("-");
+				int[] c11i = new int[c11.length];
+				for (int i = 0; i < c11.length; i++) {
+					c11i[i] = Integer.parseInt(c11[i]);
+				}
+				chains.add(c11i);
+			}
+		}
+		System.out.println("Chains: " + chains.toString());
+		
+	}
+
+	/**
      * Creates a new object
      *
      * @param classifier the base classifier for each ClassifierChain model
@@ -153,7 +195,7 @@ public class EnsembleOfClassifierChains extends TransformationBasedMultiLabelLea
         rand = new Random(1);
     }
     
-    /**
+  	/**
      * Set the seed for random numbers
      * 
      * @param seed Seed for random numbers
@@ -186,23 +228,29 @@ public class EnsembleOfClassifierChains extends TransformationBasedMultiLabelLea
                 sampledDataSet = Filter.useFilter(dataSet, rmvp);
             }
             MultiLabelInstances train = new MultiLabelInstances(sampledDataSet, trainingSet.getLabelsMetaData());
-
+            
             int[] chain = new int[numLabels];
-            for (int j = 0; j < numLabels; j++) {
-                chain[j] = j;
+            
+            if (chains.size() == 0) {
+	            
+	            for (int j = 0; j < numLabels; j++) {
+	                chain[j] = j;
+	            }
+	            for (int j = 0; j < chain.length; j++) {
+	                int randomPosition = rand.nextInt(chain.length);
+	                int temp = chain[j];
+	                chain[j] = chain[randomPosition];
+	                chain[randomPosition] = temp;
+	            }
+	            debug(Arrays.toString(chain));
+	
+	            // MAYBE WE SHOULD CHECK NOT TO PRODUCE THE SAME VECTOR FOR THE
+	            // INDICES
+	            // BUT IN THE PAPER IT DID NOT MENTION SOMETHING LIKE THAT
+	            // IT JUST SIMPLY SAY A RANDOM CHAIN ORDERING OF L
+            } else {
+            	chain = chains.get(i);
             }
-            for (int j = 0; j < chain.length; j++) {
-                int randomPosition = rand.nextInt(chain.length);
-                int temp = chain[j];
-                chain[j] = chain[randomPosition];
-                chain[randomPosition] = temp;
-            }
-            debug(Arrays.toString(chain));
-
-            // MAYBE WE SHOULD CHECK NOT TO PRODUCE THE SAME VECTOR FOR THE
-            // INDICES
-            // BUT IN THE PAPER IT DID NOT MENTION SOMETHING LIKE THAT
-            // IT JUST SIMPLY SAY A RANDOM CHAIN ORDERING OF L
 
             ensemble[i] = new ClassifierChain(baseClassifier, chain);
             ensemble[i].build(train);

@@ -54,6 +54,7 @@ import mulan.evaluation.measure.regression.macro.MacroRelRMSE;
 import weka.classifiers.Classifier;
 import weka.classifiers.functions.SMO;
 import weka.classifiers.trees.J48;
+import weka.classifiers.trees.RandomForest;
 import weka.classifiers.trees.REPTree;
 import weka.classifiers.trees.RandomTree;
 import weka.core.Instances;
@@ -78,6 +79,24 @@ public class Utils {
 		//J48, predefined
 		if(baseLearnerType.equalsIgnoreCase("J48")) {
 			learner = new J48();
+		}
+		//Random Forest
+		else if(baseLearnerType.equalsIgnoreCase("RF")) {
+			RandomForest rf = new RandomForest();
+
+			//https://waikato.github.io/weka-wiki/use_weka_in_your_java_code/
+			/*
+			String[] options = new String[2];
+			options[0] = "-I";
+			options[1] = "500";
+			try {
+				rf.setOptions(options);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			*/
+			learner = rf;
 		}
 		//Random Tree, predefined
 		else if(baseLearnerType.equalsIgnoreCase("RT")) {

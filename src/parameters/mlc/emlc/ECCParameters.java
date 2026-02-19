@@ -27,6 +27,7 @@ public class ECCParameters extends LearnerParameters{
 		map.put("w", "true");
 		map.put("b", "100");
 		map.put("r", "67");
+		map.put("C", null);
 		
 		return map;
 	}
@@ -41,13 +42,18 @@ public class ECCParameters extends LearnerParameters{
 		map.put("w", "SampleWithReplacement (boolean). True if sample with replacement is used to generate the ensemble.");
 		map.put("b", "Bag size percent [0, 100]. Percentage of instances to use when sampleWithReplacement = true.");
 		map.put("r", "Sampling percentage [0, 100]. Percentage of instances to use when sampleWithReplacement = false.");
+		map.put("C", "Chains for ECC.");
 		
 		return map;
 	}
 
 	@Override
 	public MultiLabelLearner createObject(Parameters parameters, int seed) {
-		this.checkDefaultParameters(parameters);
+
+		parameters.printParameters();
+		this.checkDefaultParameters(parameters);	
+
+		
 		
 		MultiLabelLearner learner = new EnsembleOfClassifierChains(
 				Utils.getBaseLearner(parameters.getParameter("c")), //Classifier
@@ -55,8 +61,9 @@ public class ECCParameters extends LearnerParameters{
 				parameters.getBooleanParameter("u"), //useConfidences
 				parameters.getBooleanParameter("w"), //sampleWithReplacement
 				parameters.getIntParameter("b"), //bagSizePercent
-				parameters.getDoubleParameter("r"), //samplingPercentage
-				seed //Seed for random numbers
+				parameters.getDoubleParameter("r"), //samplingPercentage				
+				seed, 
+				parameters.getParameter("C")//Seed for random numbers
 				);
 		
 		return learner;
