@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import executeMulan.exceptions.ExistingParameter;
@@ -143,6 +144,7 @@ public class Parameters {
 				System.exit(1);
 			}
 			
+			
 			//Parse algorithm-specific parameters
 			parseParameter(cmd, "b", false, true, null);
 			parseParameter(cmd, "c", false, true, null);
@@ -158,6 +160,9 @@ public class Parameters {
 			parseParameter(cmd, "v", false, true, null);
 			parseParameter(cmd, "w", false, false, null);
 			parseParameter(cmd, "z", false, true, null);
+			parseParameter(cmd, "C", false, true, null);
+			System.out.println("chains 1" + parameters.toString());
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -248,6 +253,8 @@ public class Parameters {
 		options.addOption("v", false, "Parameter V; different meaning for different algorithms.");
 		options.addOption("w", false, "Parameter w; different meaning for different algorithms.");
 		options.addOption("z", false, "Parameter z; different meaning for different algorithms.");
+		Option opt = Option.builder("C").longOpt("chains").argName("chains").hasArg().required(false).desc("Parameter chains; chains to ECC.").build();
+		options.addOption(opt);
 	}
 		
 	/**
@@ -263,6 +270,7 @@ public class Parameters {
 	 * @throws MissingParameter If the parameter is required and is not given, throws an exception
 	 */
 	protected void parseParameter(CommandLine cmd, String param, boolean required, boolean needsValue, String defaultValue) throws MissingParameterValue, ExistingParameter, MissingParameter {
+		
 		//If parameter needs a value
 		if(needsValue) {
 			if(cmd.hasOption(param)) {

@@ -1,9 +1,14 @@
 package executeMulan;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 
 import algorithms.mlc.RFPCT;
 import mulan.classifier.MultiLabelLearner;
+import mulan.classifier.MultiLabelOutput;
+import mulan.core.MulanException;
 import mulan.data.InvalidDataFormatException;
 import mulan.data.MultiLabelInstances;
 import mulan.evaluation.Evaluation;
@@ -38,6 +43,7 @@ import parameters.mtr.RCParameters;
 import parameters.mtr.RLCParameters;
 import parameters.mtr.SSTParameters;
 import parameters.mtr.STParameters;
+import weka.core.Instance;
 
 /**
  * Class to guide the execution of any Multi-Label Learning method from Mulan.
@@ -86,7 +92,9 @@ public class MulanExecutor {
 		String oFilename = parameters.getParameter("o");
 		int nSeeds = parameters.getIntParameter("i");
 		int nFolds = parameters.getIntParameter("f");
-		boolean reportMacro = parameters.getBooleanParameter("l");
+		boolean reportMacro = parameters.getBooleanParameter("l");		
+		
+		
 		
 		List<Measure> measures = null;
 		
@@ -146,6 +154,61 @@ public class MulanExecutor {
 					else {
 						//Evaluate rest of methods
 						results = eval.evaluate(learner, mlTest, measures);
+						System.out.println(results);
+						
+						String predictions = "";
+						String predictionsb = "";
+			            int numInstances = mlTest.getNumInstances();
+			            for (int instanceIndex = 0; instanceIndex < numInstances; instanceIndex++) {
+			                Instance instance = mlTest.getDataSet().instance(instanceIndex);
+			                MultiLabelOutput output = learner.makePrediction(instance);
+			                if (output.hasConfidences()) {
+			                	double preds[] = output.getConfidences();
+			                	/*
+			                	float predsi[] = new float[preds.length];
+			                	for (int n = 0; n < preds.length; n++) {
+			                		if (preds[n]) {
+			                			predsi[n] = 1;
+			                		} else {
+			                			predsi[n] = 0;
+			                		}
+			                	}*/
+			                	
+			                    predictions = predictions + "\n" +  Arrays.toString(preds);
+			                }
+			                
+			                boolean predsb[] = output.getBipartition();
+			                predictionsb = predictionsb + "\n" + Arrays.toString(predsb).replace("true", "1").replace("false", "0");
+			                
+			            }
+
+						predictions = predictions.replaceAll("\\[|\\]", "");
+						predictionsb = predictionsb.replaceAll("\\[|\\]", "");
+						
+						PrintWriter pw = null;
+
+						try {
+							pw = new PrintWriter(new FileWriter("pred_" + oFilename, false));
+							pw.write(predictions);	
+					        
+					        //Close pw
+					        pw.close();
+						} catch(Exception e) {
+							e.printStackTrace();
+						}   
+						
+						try {
+							pw = new PrintWriter(new FileWriter("predb_" + oFilename, false));
+							pw.write(predictionsb);	
+					        
+					        //Close pw
+					        pw.close();
+						} catch(Exception e) {
+							e.printStackTrace();
+						}   
+
+						
+						
 					}	
 							
 					

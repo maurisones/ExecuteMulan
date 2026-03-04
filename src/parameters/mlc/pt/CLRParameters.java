@@ -39,11 +39,18 @@ public class CLRParameters extends LearnerParameters{
 	public MultiLabelLearner createObject(Parameters parameters, int seed) {
 		this.checkDefaultParameters(parameters);
 		
-		MultiLabelLearner learner = new CalibratedLabelRanking(
+		// alterado por Mauri - set standard voting = false
+		/*MultiLabelLearner learner = new CalibratedLabelRanking(
 				Utils.getBaseLearner(parameters.getParameter("c")) //Classifier
 				);
+		*/
+		CalibratedLabelRanking clr = new CalibratedLabelRanking(
+				Utils.getBaseLearner(parameters.getParameter("c")) //Classifier
+				);
+		//clr.setStandardVoting(false);
+		//clr.setSoft(true);
 		
-		return learner;
+		return (MultiLabelLearner)clr;
 	}
 	
 }

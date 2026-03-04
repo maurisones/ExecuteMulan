@@ -17,7 +17,6 @@ public class Main {
 		
 		MulanExecutor mBuilder = new MulanExecutor(params);
 		mBuilder.execute();
-		
 		System.out.println("Finished.");
 	}
 	
